@@ -1,0 +1,7 @@
+__pycache__/
+.qodo
+.streamlit
+chroma_db_mistral
+langchain_env
+Создайте простой агент на LangChain.docx
+.env

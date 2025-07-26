@@ -1,6 +1,7 @@
 import streamlit as st
 import os
-from langchain_mistralai import ChatMistralAI
+from openai import OpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain_community.retrievers import BM25Retriever
 from langchain.retrievers import EnsembleRetriever
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -16,15 +17,16 @@ from bs4 import BeautifulSoup
 load_dotenv()
 
 class DocumentAgent:
-    def __init__(self, mistral_api_key):
-        self.mistral_api_key = mistral_api_key
-        self.llm = ChatMistralAI(
-            mistral_api_key=mistral_api_key,
-            model="mistral-large-latest",
+    def __init__(self, openai_api_key):
+        self.openai_api_key = openai_api_key
+        self.llm = ChatOpenAI(
+            openai_api_key=openai_api_key,
+            openai_api_base="https://10f9698e-46b7-4a33-be37-f6495989f01f.modelrun.inference.cloud.ru/v1",
+            model="qwen3:32b",
             temperature=0.1
         )
         self.embeddings = HuggingFaceEmbeddings(
-            model_name="intfloat/multilingual-e5-base"
+            model_name="intfloat/multilingual-e5-large"
         )
         self.vectorstore = None
         self.qa_chain = None
@@ -44,8 +46,8 @@ class DocumentAgent:
 
             doc = Document(page_content=text, metadata={"source": "uploaded_html"})
             text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1000,
-                chunk_overlap=200,
+                chunk_size=500,
+                chunk_overlap=150,
                 separators=["\n\n", "\n", ". ", " ", ""]
             )
             
@@ -114,11 +116,11 @@ class DocumentAgent:
 
 def main():
     load_dotenv()
-    mistral_api_key = os.getenv("MISTRAL_API_KEY")
+    openai_api_key = os.getenv("OPENAI_API_KEY")
 
     if 'agent' not in st.session_state:
         try:
-            st.session_state.agent = DocumentAgent(mistral_api_key)
+            st.session_state.agent = DocumentAgent(openai_api_key)
         except Exception as e:
             st.error(f"Ошибка инициализации агента: {str(e)}")
             st.stop()
